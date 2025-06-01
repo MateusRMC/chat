@@ -107,6 +107,7 @@ export default function Home() {
       <form onSubmit={handleSubmit}>
         <textarea
           className="textbox"
+          placeholder="Write or edit a message to everyone in the chat"
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
