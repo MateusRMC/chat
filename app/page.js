@@ -77,7 +77,7 @@ export default function Home() {
 
   return (
     <div className="container">
-      <h1 className="header">A chat by Matt.</h1>
+      <h1 className="header">A Chatt.</h1>
       <div className="chat">
         {messages.map((msg) => (
           <p className="loaded-message" key={msg.id}>
