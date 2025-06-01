@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "../app/lib/supabase";
 import "@/app/styles.scss";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const endOfChat = useRef(null);
 
   // Buscar mensagens existentes e iniciar realtime
   useEffect(() => {
@@ -70,9 +71,13 @@ export default function Home() {
     }
   }
 
+  useEffect(() => {
+    endOfChat.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div className="container">
-      <h1 className="header">The Chatt</h1>
+      <h1 className="header">A chat by Matt.</h1>
       <div className="chat">
         {messages.map((msg) => (
           <p className="loaded-message" key={msg.id}>
@@ -96,6 +101,7 @@ export default function Home() {
             </button>
           </p>
         ))}
+        <div ref={endOfChat} />
       </div>
 
       <form onSubmit={handleSubmit}>
