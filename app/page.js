@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../app/lib/supabase";
+import "@/app/styles.scss";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
@@ -17,8 +18,6 @@ export default function Home() {
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
         (payload) => {
-          console.log("Payload recebido:", payload);
-
           if (payload.eventType === "INSERT") {
             setMessages((msgs) => [...msgs, payload.new]);
           }
@@ -73,17 +72,16 @@ export default function Home() {
 
   return (
     <div className="container">
-      <h1>Vem de chat manin!</h1>
-
+      <h1 className="header">The Chatt</h1>
       <div className="chat">
         {messages.map((msg) => (
-          <p key={msg.id}>
+          <p className="loaded-message" key={msg.id}>
             {msg.content}{" "}
             <button
               onClick={async () => {
                 await supabase
                   .from("messages")
-                  .update({ content: msg.content + " (editado)" })
+                  .update({ content: newMessage })
                   .eq("id", msg.id);
               }}
             >
@@ -101,12 +99,19 @@ export default function Home() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <input
+        <textarea
+          className="textbox"
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
         />
-        <button type="submit">Enviar</button>
+        <button type="submit">send</button>
       </form>
     </div>
   );
