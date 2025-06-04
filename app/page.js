@@ -9,41 +9,7 @@ export default function Home() {
   const [newMessage, setNewMessage] = useState("");
   const endOfChat = useRef(null);
 
-  // Buscar mensagens existentes e iniciar realtime
-  useEffect(() => {
-    fetchMessages();
-
-    const channel = supabase
-      .channel("realtime-messages")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setMessages((msgs) => [...msgs, payload.new]);
-          }
-
-          if (payload.eventType === "UPDATE") {
-            setMessages((msgs) =>
-              msgs.map((msg) => (msg.id === payload.new.id ? payload.new : msg))
-            );
-          }
-
-          if (payload.eventType === "DELETE") {
-            setMessages((msgs) =>
-              msgs.filter((msg) => msg.id !== payload.old.id)
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  async function fetchMessages() {
+  async function selectMessages() {
     const { data, error } = await supabase
       .from("messages")
       .select("*")
@@ -56,7 +22,7 @@ export default function Home() {
     }
   }
 
-  async function handleSubmit(e) {
+  async function InsertMessages(e) {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
@@ -70,6 +36,42 @@ export default function Home() {
       setNewMessage("");
     }
   }
+
+  // Buscar mensagens existentes e iniciar realtime
+  useEffect(() => {
+    selectMessages();
+
+    const channel = supabase
+      .channel("realtime-messages")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setMessages((oldMessages) => [...oldMessages, payload.new]);
+          }
+
+          if (payload.eventType === "UPDATE") {
+            setMessages((oldMessages) =>
+              oldMessages.map((msg) =>
+                msg.id === payload.new.id ? payload.new : msg
+              )
+            );
+          }
+
+          if (payload.eventType === "DELETE") {
+            setMessages((oldMessages) =>
+              oldMessages.filter((msg) => msg.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     endOfChat.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,7 +106,7 @@ export default function Home() {
         <div ref={endOfChat} />
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={InsertMessages}>
         <textarea
           className="textbox"
           placeholder="Write or edit a message to everyone in the chat"
@@ -114,7 +116,7 @@ export default function Home() {
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              handleSubmit(e);
+              InsertMessages(e);
             }
           }}
         />
